@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// A Tenant represents a single Shopify store
+model Tenant {
+  id        String     @id @default(cuid())
+  shopName  String     @unique // e.g., "my-test-store.myshopify.com"
+  customers Customer[]
+  products  Product[]
+  orders    Order[]
+  customEvents CustomEvent[] 
+  createdAt DateTime   @default(now())
+}
+
+model Customer {
+  id                String  @id @default(cuid())
+  shopifyCustomerId String
+  email             String?
+  firstName         String?
+  lastName          String?
+  totalSpent        Float   @default(0)
+  orders            Order[]
+
+  // Relation to Tenant for multi-tenancy
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@unique([tenantId, shopifyCustomerId])
+}
+
+model Product {
+  id               String  @id @default(cuid())
+  shopifyProductId String
+  title            String
+  vendor           String?
+  price            Float
+  category         String?
+  // Relation to Tenant for multi-tenancy
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@unique([tenantId, shopifyProductId])
+}
+
+model Order {
+  id             String    @id @default(cuid())
+  shopifyOrderId String
+  totalPrice     Float
+  orderedAt      DateTime
+
+  // Relation to a Customer
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+
+  // Relation to Tenant for multi-tenancy
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+
+  @@unique([tenantId, shopifyOrderId])
+}
+
+// To store events sent from Shopify via webhooks
+model CustomEvent {
+  id        String   @id @default(cuid())
+  eventName String   // e.g., "checkouts/create"
+  eventData Json     // The full webhook payload from Shopify
+  createdAt DateTime @default(now())
+
+  // Relation to Tenant for multi-tenancy
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenantId String
+}

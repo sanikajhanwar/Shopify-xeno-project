@@ -1,0 +1,18 @@
+### Trigger the data ingestion (run this first)
+POST http://localhost:3002/api/ingest
+
+###
+### --- INSIGHTS API ---
+###
+
+### Get totals
+GET http://localhost:3002/api/insights/totals
+
+### Get top 5 customers
+GET http://localhost:3002/api/insights/top-customers
+
+### Get orders by date (you can change the dates)
+GET http://localhost:3002/api/insights/orders-by-date?startDate=2025-09-01&endDate=2025-09-15
+
+### Get revenue by category
+GET http://localhost:3002/api/insights/revenue-by-category
