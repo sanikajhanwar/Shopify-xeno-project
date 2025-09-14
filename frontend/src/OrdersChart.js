@@ -14,7 +14,7 @@ const OrdersChart = () => {
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`http://localhost:3002/api/insights/orders-by-date?startDate=${startDate}&endDate=${endDate}`);
+        const response = await fetch(`https://shopify-xeno-project-4eil.vercel.app/api/insights/orders-by-date?startDate=${startDate}&endDate=${endDate}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

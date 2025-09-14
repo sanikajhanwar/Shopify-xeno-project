@@ -31,7 +31,7 @@ function App() {
 
     const fetchData = async () => {
       try {
-        const totalsRes = await fetch('http://localhost:3002/api/insights/totals');
+        const totalsRes = await fetch('https://shopify-xeno-project-4eil.vercel.app/api/insights/totals');
         if (!totalsRes.ok) throw new Error('Failed to fetch totals');
         const totalsData = await totalsRes.json();
         setTotals(totalsData);
