@@ -29,13 +29,17 @@ const Charts = () => {
         const startDate = thirtyDaysAgo.toISOString().split('T')[0];
         const endDate = today.toISOString().split('T')[0];
 
-        const ordersRes = await fetch(`https://shopify-xeno-project-4eil.vercel.app/api/insights/orders-by-date?startDate=${startDate}&endDate=${endDate}`);
-        const categoryRes = await fetch('https://shopify-xeno-project-4eil.vercel.app/api/insights/revenue-by-category');
+        const [ordersRes, categoryRes] = await Promise.all([
+          fetch(`${process.env.REACT_APP_API_URL}/api/insights/orders-by-date?startDate=${startDate}&endDate=${endDate}`),
+          fetch(`${process.env.REACT_APP_API_URL}/api/insights/revenue-by-category`)
+        ]);
         
         if (!ordersRes.ok || !categoryRes.ok) throw new Error('Failed to fetch chart data');
 
-        const ordersJson = await ordersRes.json();
-        const categoryJson = await categoryRes.json();
+        const [ordersJson, categoryJson] = await Promise.all([
+          ordersRes.json(),
+          categoryRes.json()
+        ]);
 
         const formattedOrders = ordersJson.map(order => ({
           date: new Date(order.orderedAt).toLocaleDateString(),
