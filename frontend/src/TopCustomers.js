@@ -20,7 +20,7 @@ const TopCustomers = () => {
   useEffect(() => {
     const fetchTopCustomers = async () => {
       try {
-        const res = await fetch('https://shopify-xeno-project-4eil.vercel.app/api/insights/top-customers');
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/insights/top-customers`);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setCustomers(data);
