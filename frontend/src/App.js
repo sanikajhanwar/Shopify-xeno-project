@@ -16,12 +16,13 @@ import {
 import { FaShopify } from 'react-icons/fa';
 import Login from './Login';
 import TopCustomers from './TopCustomers';
-import Charts from './Charts'; // <-- Import the new component
+import Charts from './Charts';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [totals, setTotals] = useState(null);
+  const [funnelData, setFunnelData] = useState(null); // <-- New state for funnel data
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -31,11 +32,19 @@ function App() {
 
     const fetchData = async () => {
       try {
-        // const totalsRes = await fetch('https://shopify-xeno-project-4eil.vercel.app/api/insights/totals');
-        const totalsRes = await fetch(`${process.env.REACT_APP_API_URL}/api/insights/totals`);
-        if (!totalsRes.ok) throw new Error('Failed to fetch totals');
+        // Fetch both totals and funnel data at the same time
+        const [totalsRes, funnelRes] = await Promise.all([
+          fetch(`${process.env.REACT_APP_API_URL}/api/insights/totals`),
+          fetch(`${process.env.REACT_APP_API_URL}/api/insights/funnel`)
+        ]);
+
+        if (!totalsRes.ok || !funnelRes.ok) throw new Error('Failed to fetch data');
+        
         const totalsData = await totalsRes.json();
+        const funnelJson = await funnelRes.json();
+
         setTotals(totalsData);
+        setFunnelData(funnelJson); // <-- Save the funnel data
       } catch (err) {
         console.error(err);
       } finally {
@@ -57,6 +66,7 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setTotals(null);
+    setFunnelData(null);
   };
 
   if (!isAuthenticated) {
@@ -93,10 +103,11 @@ function App() {
             <Spinner size="xl" />
           </Flex>
         ) : (
-          totals && (
+          (totals && funnelData) && ( // <-- Check for both data sources
             <VStack spacing={8} align="stretch">
-              {/* Metric Cards Grid */}
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+              {/* --- UPDATED METRIC CARDS GRID --- */}
+              <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+                {/* Existing Cards */}
                 <Stat p={5} shadow="md" borderWidth="1px" borderRadius="md" bg="white">
                   <StatLabel>Total Revenue</StatLabel>
                   <StatNumber fontSize="3xl">${totals.totalRevenue.toFixed(2)}</StatNumber>
@@ -115,11 +126,26 @@ function App() {
                     ${(totals.totalRevenue / totals.totalOrders).toFixed(2)}
                   </StatNumber>
                 </Stat>
+
+                {/* --- NEW BONUS CARDS --- */}
+                <Stat p={5} shadow="md" borderWidth="1px" borderRadius="md" bg="white">
+                  <StatLabel>Checkouts Started</StatLabel>
+                  <StatNumber fontSize="3xl">{funnelData.checkoutsStarted}</StatNumber>
+                </Stat>
+                <Stat p={5} shadow="md" borderWidth="1px" borderRadius="md" bg="white">
+                  <StatLabel>Abandoned Checkouts</StatLabel>
+                  <StatNumber fontSize="3xl">{funnelData.abandonedCheckouts}</StatNumber>
+                </Stat>
+                <Stat p={5} shadow="md" borderWidth="1px" borderRadius="md" bg="white">
+                  <StatLabel>Conversion Rate</StatLabel>
+                  <StatNumber fontSize="3xl">{funnelData.conversionRate}%</StatNumber>
+                </Stat>
+
               </SimpleGrid>
 
               <TopCustomers /> 
               
-              <Charts /> {/* <-- Add the new component here */}
+              <Charts />
             </VStack>
           )
         )}
